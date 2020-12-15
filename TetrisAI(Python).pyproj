@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>TetrisAI(Python)</Name>
     <RootNamespace>TetrisAI(Python)</RootNamespace>
-    <InterpreterId>Global|PythonCore|3.9</InterpreterId>
+    <InterpreterId>Global|PythonCore|3.8</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,13 +23,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="gameboard.py" />
+    <Compile Include="TetrisAICollection.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TetrisAI_Python_.py" />
+    <Compile Include="TetrisEnvironment.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tetromino.py" />
     <Compile Include="tetrominoData.py" />
     <Compile Include="tetrominoQueue.py" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="Global|PythonCore|3.9" />
+    <InterpreterReference Include="Global|PythonCore|3.8" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="TetrisData.csv" />

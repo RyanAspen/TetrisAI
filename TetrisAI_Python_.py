@@ -1,8 +1,9 @@
-from gameboard import gameboard
-import random 
+# TODO
+# Implement System to save training (keras Checkpoints?)
+# Speed up gameboard if possible
 
-game = gameboard()
-while not game.gameOver:
-    r1 = random.randint(0,2)
-    r2 = random.randint(0,2)
-    game.update((r1,r2))
+from TetrisAICollection import TetrisAICollection
+
+collection = TetrisAICollection()
+collection.validateEnv()
+collection.train()
