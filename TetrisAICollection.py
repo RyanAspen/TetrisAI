@@ -29,8 +29,8 @@ import numpy as np
 
 num_iterations = 20000 # @param {type:"integer"}
 
-initial_collect_steps = 100  # @param {type:"integer"} 
-collect_steps_per_iteration = 1  # @param {type:"integer"}
+initial_collect_steps = 10  # @param {type:"integer"} 
+collect_steps = 3
 replay_buffer_max_length = 100000  # @param {type:"integer"}
 
 batch_size = 64  # @param {type:"integer"}
@@ -47,15 +47,12 @@ class TetrisAICollection:
         self.eval_env = tf_py_environment.TFPyEnvironment(TetrisEnvironment())
         self.agent = self.initAgent()
         self.replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(self.agent.collect_data_spec, self.train_env.batch_size, replay_buffer_max_length)
+        self.collect_data(1)
+        self.dataset = self.replay_buffer.as_dataset(num_parallel_calls=3, sample_batch_size=batch_size, num_steps=2).prefetch(3)
+        self.iterator = iter(self.dataset)
 
     def validateEnv(self):
         utils.validate_py_environment(TetrisEnvironment(), episodes=5)
-
-    def getPolicy(self):
-        return self.agent.policy
-
-    def getCollectPolicy(self):
-        return self.agent.collect_policy
 
     def initAgent(self):
         fc_layer_params = (100,)
@@ -94,43 +91,33 @@ class TetrisAICollection:
     #env = train_env, pol = collect_policy, buf = replay buffer
     def collect_step(self):
       time_step = self.train_env.current_time_step()
-      action_step = self.agent.getCollectPolicy().action(time_step)
+      action_step = self.agent.collect_policy.action(time_step)
       next_time_step = self.train_env.step(action_step.action)
       traj = trajectory.from_transition(time_step, action_step, next_time_step)
-
-      # Add trajectory to the replay buffer
       self.replay_buffer.add_batch(traj)
 
     def collect_data(self, steps):
       for _ in range(steps):
-        collect_step()
+        self.collect_step()
 
     def train(self):
-        # (Optional) Optimize by wrapping some of the code in a graph using TF function.
-        self.agent.train = common.function(self.agent.train)
-
-        # Reset the train step
+        
         self.agent.train_step_counter.assign(0)
 
-        # Evaluate the agent's policy once before training.
-        avg_return = self.compute_avg_return()
+        avg_return = self.compute_avg_return(initial_collect_steps)
         returns = [avg_return]
 
         for _ in range(num_iterations):
+            self.collect_data(1)
 
-          # Collect a few steps using collect_policy and save to the replay buffer.
-          collect_data(collect_steps_per_iteration)
+            experience, unused_info = next(self.iterator)
+            train_loss = self.agent.train(experience).loss
+            step = self.agent.train_step_counter.numpy()
 
-          # Sample a batch of data from the buffer and update the agent's network.
-          experience, unused_info = next(iterator)
-          train_loss = self.agent.train(experience).loss
+            if step % log_interval == 0:
+                print('step = {0}: loss = {1}'.format(step, train_loss))
 
-          step = agent.train_step_counter.numpy()
-
-          if step % log_interval == 0:
-            print('step = {0}: loss = {1}'.format(step, train_loss))
-
-          if step % eval_interval == 0:
-            avg_return = compute_avg_return(eval_env, agent.policy, num_eval_episodes)
-            print('step = {0}: Average Return = {1}'.format(step, avg_return))
-            returns.append(avg_return)
+            if step % eval_interval == 0:
+                avg_return = self.compute_avg_return(collect_steps)
+                print('step = {0}: Average Return = {1}'.format(step, avg_return))
+                returns.append(avg_return)
