@@ -23,6 +23,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="gameboard.py" />
+    <Compile Include="TetrisAgent.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TetrisAICollection.py">
       <SubType>Code</SubType>
     </Compile>
@@ -30,11 +33,13 @@
     <Compile Include="TetrisEnvironment.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TetrisReplayBuffer.py" />
     <Compile Include="tetromino.py" />
     <Compile Include="tetrominoData.py" />
     <Compile Include="tetrominoQueue.py" />
   </ItemGroup>
   <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.7" />
     <InterpreterReference Include="Global|PythonCore|3.8" />
   </ItemGroup>
   <ItemGroup>
